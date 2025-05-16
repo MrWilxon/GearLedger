@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
@@ -76,14 +77,10 @@ export const columns: ColumnDef<StockItem>[] = [
   },
   {
     accessorKey: "price",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Price ($)" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Price (NRs.)" />,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("price"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-      return <div className="text-right font-medium">{formatted}</div>;
+      return <div className="text-right font-medium">NRs. {amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>;
     },
   },
   {

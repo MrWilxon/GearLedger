@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -101,7 +102,7 @@ export function ServiceRecordDialog({
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "yyyy-MM-dd")
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -209,7 +210,7 @@ export function ServiceRecordDialog({
               name="cost"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cost ($)</FormLabel>
+                  <FormLabel>Cost (NRs.)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="0.00" {...field} />
                   </FormControl>

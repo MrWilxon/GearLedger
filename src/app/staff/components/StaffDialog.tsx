@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -84,7 +85,7 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                          {field.value ? format(field.value, "yyyy-MM-dd") : <span>Pick a date</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -102,14 +103,14 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
                 control={form.control}
                 name="salary"
                 render={({ field }) => (
-                  <FormItem><FormLabel>Salary ($)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Salary (NRs.)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} /></FormControl><FormMessage /></FormItem>
                 )}
               />
               <FormField
                 control={form.control}
                 name="advanceSalary"
                 render={({ field }) => (
-                  <FormItem><FormLabel>Advance Salary ($)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Advance Salary (NRs.)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} /></FormControl><FormMessage /></FormItem>
                 )}
               />
             </div>

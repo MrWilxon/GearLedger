@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
@@ -20,7 +21,7 @@ interface StaffTableProps {
   onDelete: (id: string) => void;
 }
 
-const currencyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const currencyFormatter = (value: number) => `NRs. ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const columns: ColumnDef<StaffMember>[] = [
   {
@@ -31,9 +32,9 @@ export const columns: ColumnDef<StaffMember>[] = [
   },
   { accessorKey: "name", header: ({ column }) => <DataTableColumnHeader column={column} title="Name" /> },
   { accessorKey: "designation", header: "Designation" },
-  { accessorKey: "joiningDate", header: ({ column }) => <DataTableColumnHeader column={column} title="Joining Date" />, cell: ({ row }) => format(new Date(row.getValue("joiningDate")), "PP") },
-  { accessorKey: "salary", header: ({ column }) => <DataTableColumnHeader column={column} title="Salary ($)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter.format(row.getValue("salary"))}</div> },
-  { accessorKey: "advanceSalary", header: ({ column }) => <DataTableColumnHeader column={column} title="Adv. Salary ($)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter.format(row.getValue("advanceSalary"))}</div>},
+  { accessorKey: "joiningDate", header: ({ column }) => <DataTableColumnHeader column={column} title="Joining Date" />, cell: ({ row }) => format(new Date(row.getValue("joiningDate")), "yyyy-MM-dd") },
+  { accessorKey: "salary", header: ({ column }) => <DataTableColumnHeader column={column} title="Salary (NRs.)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue("salary"))}</div> },
+  { accessorKey: "advanceSalary", header: ({ column }) => <DataTableColumnHeader column={column} title="Adv. Salary (NRs.)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue("advanceSalary"))}</div>},
   { accessorKey: "contactNo", header: "Contact No." },
   {
     id: "actions",

@@ -1,3 +1,4 @@
+
 import { PageHeader } from "@/components/PageHeader";
 import { DashboardSummaryCard } from "@/components/dashboard/DashboardSummaryCard";
 import { SalesChart } from "@/components/dashboard/SalesChart";
@@ -14,20 +15,20 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <DashboardSummaryCard
           title="Today's Sales"
-          value={`$${mockDailySales.total.toFixed(2)}`}
+          value={`NRs. ${mockDailySales.total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           description={`${mockDailySales.count} services`}
           icon={DollarSign}
           iconClassName="text-green-500"
         />
         <DashboardSummaryCard
           title="Total Stock Value"
-          value={`$${mockStockValue.toFixed(2)}`}
+          value={`NRs. ${mockStockValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={Boxes}
           iconClassName="text-blue-500"
         />
         <DashboardSummaryCard
           title="Recent Expenses"
-          value={`$${mockRecentExpenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(2)}`}
+          value={`NRs. ${mockRecentExpenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           description={`${mockRecentExpenses.length} recent transactions`}
           icon={Receipt}
           iconClassName="text-orange-500"
