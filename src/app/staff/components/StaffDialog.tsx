@@ -14,6 +14,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { StaffMember } from "@/types";
+import { useEffect } from "react";
 
 const staffMemberSchema = z.object({
   name: z.string().min(1, "Staff name is required"),
@@ -39,12 +40,39 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
   const form = useForm<StaffFormData>({
     resolver: zodResolver(staffMemberSchema),
     defaultValues: {
-      ...defaultValues,
-      joiningDate: defaultValues?.joiningDate ? new Date(defaultValues.joiningDate) : new Date(),
+      name: defaultValues?.name || "",
+      designation: defaultValues?.designation || "",
+      joiningDate: defaultValues?.joiningDate ? new Date(defaultValues.joiningDate) : undefined,
       salary: defaultValues?.salary || 0,
       advanceSalary: defaultValues?.advanceSalary || 0,
+      contactNo: defaultValues?.contactNo || "",
+      address: defaultValues?.address || "",
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditing && defaultValues) {
+        form.reset({
+          ...defaultValues,
+          joiningDate: defaultValues.joiningDate ? new Date(defaultValues.joiningDate) : new Date(),
+          salary: defaultValues.salary || 0,
+          advanceSalary: defaultValues.advanceSalary || 0,
+        });
+      } else if (!isEditing) {
+        form.reset({
+          name: "",
+          designation: "",
+          joiningDate: new Date(),
+          salary: 0,
+          advanceSalary: 0,
+          contactNo: "",
+          address: "",
+        });
+      }
+    }
+  }, [isOpen, isEditing, defaultValues, form]);
+
 
   const handleFormSubmit = (data: StaffFormData) => {
     onSubmit({ ...data, id: defaultValues?.id || crypto.randomUUID(), advanceSalary: data.advanceSalary || 0 });

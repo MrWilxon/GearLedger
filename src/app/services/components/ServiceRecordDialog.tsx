@@ -29,6 +29,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { ServiceRecord } from "@/types";
+import { useEffect } from "react";
 
 const serviceRecordSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
@@ -46,7 +47,7 @@ type ServiceRecordFormData = z.infer<typeof serviceRecordSchema>;
 interface ServiceRecordDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ServiceRecord) => void; // Simplified, in real app use Server Action
+  onSubmit: (data: ServiceRecord) => void;
   defaultValues?: Partial<ServiceRecord>;
   isEditing?: boolean;
 }
@@ -61,12 +62,40 @@ export function ServiceRecordDialog({
   const form = useForm<ServiceRecordFormData>({
     resolver: zodResolver(serviceRecordSchema),
     defaultValues: {
-      ...defaultValues,
-      date: defaultValues?.date ? new Date(defaultValues.date) : new Date(),
+      date: defaultValues?.date ? new Date(defaultValues.date) : undefined,
+      customerName: defaultValues?.customerName || "",
+      contactNo: defaultValues?.contactNo || "",
+      bikeModel: defaultValues?.bikeModel || "",
+      bikeNo: defaultValues?.bikeNo || "",
+      serviceDetails: defaultValues?.serviceDetails || "",
       serviceCount: defaultValues?.serviceCount || 1,
       cost: defaultValues?.cost || 0,
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditing && defaultValues) {
+        form.reset({
+          ...defaultValues,
+          date: defaultValues.date ? new Date(defaultValues.date) : new Date(),
+          serviceCount: defaultValues.serviceCount || 1,
+          cost: defaultValues.cost || 0,
+        });
+      } else if (!isEditing) {
+        form.reset({
+          date: new Date(),
+          customerName: "",
+          contactNo: "",
+          bikeModel: "",
+          bikeNo: "",
+          serviceDetails: "",
+          serviceCount: 1,
+          cost: 0,
+        });
+      }
+    }
+  }, [isOpen, isEditing, defaultValues, form]);
 
   const handleFormSubmit = (data: ServiceRecordFormData) => {
     onSubmit({ ...data, id: defaultValues?.id || crypto.randomUUID() });

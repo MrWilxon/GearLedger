@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { Expense } from "@/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect } from "react";
 
 const expenseSchema = z.object({
   date: z.date({ required_error: "Expense date is required" }),
@@ -40,15 +41,37 @@ export function ExpenseDialog({ isOpen, onClose, onSubmit, defaultValues, isEdit
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
-      ...defaultValues,
-      date: defaultValues?.date ? new Date(defaultValues.date) : new Date(),
+      date: defaultValues?.date ? new Date(defaultValues.date) : undefined,
+      category: defaultValues?.category || "",
+      description: defaultValues?.description || "",
       amount: defaultValues?.amount || 0,
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditing && defaultValues) {
+        form.reset({
+          ...defaultValues,
+          date: defaultValues.date ? new Date(defaultValues.date) : new Date(),
+          amount: defaultValues.amount || 0,
+          category: defaultValues.category || "",
+          description: defaultValues.description || "",
+        });
+      } else if (!isEditing) {
+        form.reset({
+          date: new Date(), // Set current date client-side for new expense
+          category: "",
+          description: "",
+          amount: 0,
+        });
+      }
+    }
+  }, [isOpen, isEditing, defaultValues, form]);
+
   const handleFormSubmit = (data: ExpenseFormData) => {
     onSubmit({ ...data, id: defaultValues?.id || crypto.randomUUID() });
-    form.reset();
+    form.reset(); // Reset form after submission
     onClose();
   };
 
@@ -93,7 +116,7 @@ export function ExpenseDialog({ isOpen, onClose, onSubmit, defaultValues, isEdit
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select expense category" />
