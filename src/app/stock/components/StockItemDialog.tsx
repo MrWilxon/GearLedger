@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { StockItem } from "@/types";
+import { useEffect } from "react";
 
 const stockItemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
@@ -60,11 +61,32 @@ export function StockItemDialog({
   const form = useForm<StockItemFormData>({
     resolver: zodResolver(stockItemSchema),
     defaultValues: {
-      ...defaultValues,
+      name: defaultValues?.name || "",
+      category: defaultValues?.category || "",
       quantityInStock: defaultValues?.quantityInStock || 0,
       price: defaultValues?.price || 0,
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditing && defaultValues) {
+        form.reset({
+          name: defaultValues.name || "",
+          category: defaultValues.category || "",
+          quantityInStock: defaultValues.quantityInStock || 0,
+          price: defaultValues.price || 0,
+        });
+      } else if (!isEditing) {
+        form.reset({
+          name: "",
+          category: "",
+          quantityInStock: 0,
+          price: 0,
+        });
+      }
+    }
+  }, [isOpen, isEditing, defaultValues, form]);
 
   const handleFormSubmit = (data: StockItemFormData) => {
     onSubmit({ ...data, id: defaultValues?.id || crypto.randomUUID() });
@@ -102,7 +124,7 @@ export function StockItemDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
