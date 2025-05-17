@@ -1,16 +1,17 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/PageHeader";
 import { DashboardSummaryCard } from "@/components/dashboard/DashboardSummaryCard";
 import { SalesChart } from "@/components/dashboard/SalesChart";
-import { DollarSign, Boxes, Receipt, Activity } from "lucide-react";
+import { DollarSign, Boxes, Receipt, Activity, FileText } from "lucide-react"; // Added FileText for new section
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator"; // Added Separator
 import { useLog } from '@/contexts/LogContext';
 import { format, subDays } from 'date-fns';
 import type { ServiceRecord, Expense, StockItem } from '@/types';
+import ReportsClient from "./reports/components/ReportsClient"; // Import ReportsClient
 
 // localStorage keys (must match those in client components)
 const SERVICE_RECORDS_STORAGE_KEY = "gearledger_service_records";
@@ -26,17 +27,12 @@ export default function DashboardPage() {
   const { logEntries } = useLog(); 
 
   useEffect(() => {
-    // Load and process data from localStorage for dashboard summaries
-    // This effect runs only on the client after hydration
-
-    // --- Sales Data ---
     const storedServiceRecords = localStorage.getItem(SERVICE_RECORDS_STORAGE_KEY);
     let currentDaySalesTotal = 0;
     let currentDaySalesCount = 0;
     const today = new Date();
     const last7DaysSales: { [key: string]: number } = {};
 
-    // Initialize last 7 days for chart
     for (let i = 6; i >= 0; i--) {
       const day = subDays(today, i);
       last7DaysSales[format(day, "yyyy-MM-dd")] = 0;
@@ -47,12 +43,10 @@ export default function DashboardPage() {
         const parsedServiceRecords = JSON.parse(storedServiceRecords) as ServiceRecord[];
         parsedServiceRecords.forEach(record => {
           const recordDate = new Date(record.date);
-          // Daily Sales (Today)
           if (format(recordDate, "yyyy-MM-dd") === format(today, "yyyy-MM-dd")) {
             currentDaySalesTotal += record.cost;
             currentDaySalesCount += 1;
           }
-          // Sales for last 7 days chart
           const recordDateStr = format(recordDate, "yyyy-MM-dd");
           if (last7DaysSales.hasOwnProperty(recordDateStr)) {
             last7DaysSales[recordDateStr] += record.cost;
@@ -65,8 +59,6 @@ export default function DashboardPage() {
       Object.entries(last7DaysSales).map(([date, sales]) => ({ date, sales })).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     );
 
-
-    // --- Stock Value ---
     const storedStockItems = localStorage.getItem(STOCK_ITEMS_STORAGE_KEY);
     let currentStockValue = 0;
     if (storedStockItems) {
@@ -77,7 +69,6 @@ export default function DashboardPage() {
     }
     setStockValue(currentStockValue);
 
-    // --- Recent Expenses (e.g., last 7 days) ---
     const storedExpenses = localStorage.getItem(EXPENSES_STORAGE_KEY);
     let recentExpensesTotal = 0;
     let recentExpensesCount = 0;
@@ -96,7 +87,7 @@ export default function DashboardPage() {
     }
     setRecentExpensesSummary({ total: recentExpensesTotal, count: recentExpensesCount });
 
-  }, [logEntries]); // Re-run if logEntries change, implying data might have changed
+  }, [logEntries]);
 
 
   return (
@@ -124,7 +115,7 @@ export default function DashboardPage() {
           iconClassName="text-orange-500"
         />
          <DashboardSummaryCard
-          title="Pending Tasks"
+          title="Pending Tasks" // This remains a placeholder or needs actual data source
           value="0" 
           description="Awaiting completion"
           icon={Activity}
@@ -132,7 +123,7 @@ export default function DashboardPage() {
         />
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 mb-8"> {/* Added mb-8 for spacing */}
         <SalesChart salesDataForChart={salesChartData} />
         <Card className="shadow-md">
           <CardHeader>
@@ -153,7 +144,7 @@ export default function DashboardPage() {
                           {activity.user} <span className="font-normal text-muted-foreground">{activity.action.toLowerCase().replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase())}</span>
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {activity.details} - {format(activity.timestamp, "MMM dd, hh:mm a")}
+                          {activity.details} - {format(new Date(activity.timestamp), "MMM dd, hh:mm a")}
                         </p>
                       </div>
                     </div>
@@ -166,6 +157,19 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Separator className="my-8" /> {/* Added separator */}
+
+      {/* New Section for Detailed Reports &amp; Logs */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold tracking-tight flex items-center">
+          <FileText className="mr-3 h-6 w-6" /> Detailed Reports &amp; Logs
+        </h2>
+        <p className="mt-1 text-muted-foreground">
+          View and generate various reports for your business. Data is from localStorage.
+        </p>
+      </div>
+      <ReportsClient />
     </>
   );
 }

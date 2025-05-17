@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { PageHeader } from "@/components/PageHeader";
+// Removed PageHeader import as it's no longer used here directly for main title
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,7 +10,7 @@ import { Printer, Download } from "lucide-react";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import type { DateRange } from "react-day-picker";
 import { useLog, type LogEntryType } from '@/contexts/LogContext';
-import { format, isWithinInterval, parseISO } from 'date-fns';
+import { format, isWithinInterval } from 'date-fns'; // Removed parseISO as it might not be needed if dates are already Date objects
 import type { ServiceRecord, Expense, StockItem } from "@/types";
 
 // localStorage keys (must match those in client components)
@@ -46,11 +45,7 @@ export default function ReportsClient() {
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
 
   useEffect(() => {
-    // Load data from localStorage when component mounts or dateRange changes
-    // This ensures reports use the latest persisted data.
-    
     const loadData = () => {
-      // Load Service Records
       const storedServiceRecords = localStorage.getItem(SERVICE_RECORDS_STORAGE_KEY);
       if (storedServiceRecords) {
         try {
@@ -61,7 +56,6 @@ export default function ReportsClient() {
         setServiceRecords([]);
       }
 
-      // Load Expenses
       const storedExpenses = localStorage.getItem(EXPENSES_STORAGE_KEY);
       if (storedExpenses) {
         try {
@@ -72,7 +66,6 @@ export default function ReportsClient() {
         setExpenses([]);
       }
       
-      // Load Stock Items
       const storedStock = localStorage.getItem(STOCK_ITEMS_STORAGE_KEY);
       if (storedStock) {
         try {
@@ -84,23 +77,24 @@ export default function ReportsClient() {
     };
 
     loadData();
-    // Re-load data if logEntries change, as this indicates data might have been modified elsewhere.
-  }, [logEntries, dateRange]); // Depend on logEntries to refresh data if underlying data changes
+  }, [logEntries, dateRange]); 
 
   const filteredServiceRecords = useMemo(() => {
-    if (!dateRange?.from) return serviceRecords;
-    const toDate = dateRange.to || dateRange.from; // If only 'from' is selected, use it as 'to'
-    return serviceRecords.filter(record => 
-      isWithinInterval(record.date, { start: dateRange.from!, end: toDate })
-    );
+    if (!dateRange?.from) return serviceRecords; // Show all if no range selected
+    const toDate = dateRange.to || dateRange.from; 
+    return serviceRecords.filter(record => {
+        const recordDate = new Date(record.date); // Ensure record.date is a Date object
+        return isWithinInterval(recordDate, { start: dateRange.from!, end: toDate });
+    });
   }, [serviceRecords, dateRange]);
 
   const filteredExpenses = useMemo(() => {
-    if (!dateRange?.from) return expenses;
+    if (!dateRange?.from) return expenses; // Show all if no range selected
     const toDate = dateRange.to || dateRange.from;
-    return expenses.filter(expense => 
-      isWithinInterval(expense.date, { start: dateRange.from!, end: toDate })
-    );
+    return expenses.filter(expense => {
+        const expenseDate = new Date(expense.date); // Ensure expense.date is a Date object
+        return isWithinInterval(expenseDate, { start: dateRange.from!, end: toDate });
+    });
   }, [expenses, dateRange]);
 
   const totalSales = useMemo(() => 
@@ -117,22 +111,21 @@ export default function ReportsClient() {
 
   return (
     <>
-      <PageHeader
-        title="Reports & Logs"
-        description="View and generate various reports for your business. Data is from localStorage."
-        actions={
-          <div className="flex items-center gap-2">
+      {/* Removed PageHeader component from here */}
+      {/* DatePicker and Print button are now directly part of this component's layout */}
+      <div className="mb-6 flex flex-col gap-y-2 sm:flex-row sm:items-center sm:justify-end">
+         <div className="flex items-center gap-2">
             <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
             <Button onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print Page</Button>
           </div>
-        }
-      />
+      </div>
+
       <Tabs defaultValue="sales" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-4">
           <TabsTrigger value="sales">Sales Report</TabsTrigger>
           <TabsTrigger value="stock">Stock Report</TabsTrigger>
-          <TabsTrigger value="finance">Income & Expense</TabsTrigger>
-          <TabsTrigger value="logs">Entry/Edit Logs</TabsTrigger>
+          <TabsTrigger value="finance">Income &amp; Expense</TabsTrigger>
+          <TabsTrigger value="logs">Activity Logs</TabsTrigger>
         </TabsList>
         
         <TabsContent value="sales">
@@ -157,7 +150,7 @@ export default function ReportsClient() {
                   <TableBody>
                     {filteredServiceRecords.map(record => (
                       <TableRow key={record.id}>
-                        <TableCell>{format(record.date, "yyyy-MM-dd")}</TableCell>
+                        <TableCell>{format(new Date(record.date), "yyyy-MM-dd")}</TableCell>
                         <TableCell>{record.customerName}</TableCell>
                         <TableCell>{record.bikeModel}</TableCell>
                         <TableCell className="text-right">NRs. {record.cost.toFixed(2)}</TableCell>
@@ -180,7 +173,7 @@ export default function ReportsClient() {
             <Card>
               <CardHeader>
                 <CardTitle>Current Stock Report</CardTitle>
-                <CardDescription>Overview of all items currently in stock.</CardDescription>
+                <CardDescription>Overview of all items currently in stock. This report is not date-range filtered.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -218,7 +211,7 @@ export default function ReportsClient() {
         <TabsContent value="finance">
           <Card>
             <CardHeader>
-              <CardTitle>Income & Expense Report</CardTitle>
+              <CardTitle>Income &amp; Expense Report</CardTitle>
               <CardDescription>
                 {dateRange?.from ? `Financial summary from ${format(dateRange.from, "yyyy-MM-dd")} ${dateRange.to ? `to ${format(dateRange.to, "yyyy-MM-dd")}` : ''}` : "Overall Financial Summary"}
               </CardDescription>
@@ -232,7 +225,7 @@ export default function ReportsClient() {
                     <TableBody>
                       {filteredServiceRecords.map(record => (
                         <TableRow key={`income-${record.id}`}>
-                          <TableCell>{format(record.date, "yyyy-MM-dd")}</TableCell>
+                          <TableCell>{format(new Date(record.date), "yyyy-MM-dd")}</TableCell>
                           <TableCell>{record.customerName}</TableCell>
                           <TableCell className="text-right">NRs. {record.cost.toFixed(2)}</TableCell>
                         </TableRow>
@@ -250,7 +243,7 @@ export default function ReportsClient() {
                   <TableBody>
                     {filteredExpenses.map(expense => (
                       <TableRow key={`expense-${expense.id}`}>
-                        <TableCell>{format(expense.date, "yyyy-MM-dd")}</TableCell>
+                        <TableCell>{format(new Date(expense.date), "yyyy-MM-dd")}</TableCell>
                         <TableCell>{expense.category}</TableCell>
                         <TableCell>{expense.description}</TableCell>
                         <TableCell className="text-right">NRs. {expense.amount.toFixed(2)}</TableCell>
@@ -271,8 +264,8 @@ export default function ReportsClient() {
         <TabsContent value="logs">
           <Card>
             <CardHeader>
-              <CardTitle>Entry & Edit Logs</CardTitle>
-              <CardDescription>Chronological record of data entries and modifications. (Max {logEntries.length} shown)</CardDescription>
+              <CardTitle>Activity Logs</CardTitle>
+              <CardDescription>Chronological record of data entries and modifications. (Max {logEntries.length > 0 ? MAX_LOG_ENTRIES : 0} shown)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="max-h-[600px] overflow-y-auto">
@@ -284,7 +277,7 @@ export default function ReportsClient() {
                       <div className="flex justify-between items-center">
                         <p className="font-medium">{entry.action}</p>
                         <p className="text-xs text-muted-foreground">
-                          {format(entry.timestamp, "yyyy-MM-dd hh:mm a")}
+                          {format(new Date(entry.timestamp), "yyyy-MM-dd hh:mm a")}
                         </p>
                       </div>
                       <p className="text-sm text-muted-foreground">User: {entry.user}</p>
@@ -303,3 +296,6 @@ export default function ReportsClient() {
     </>
   );
 }
+
+// Added MAX_LOG_ENTRIES constant, assuming it was defined in LogContext but needed here for description
+const MAX_LOG_ENTRIES = 100;

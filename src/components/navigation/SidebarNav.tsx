@@ -7,9 +7,9 @@ import {
   Wrench,
   Boxes,
   CreditCard,
-  FileText,
+  // FileText, // Removed Reports icon
   Users,
-  Settings2,
+  // Settings2, // Settings icon was present but not used in navItems
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ const navItems = [
   { href: "/stock", label: "Stock", icon: Boxes },
   { href: "/expenses", label: "Expenses", icon: CreditCard },
   { href: "/staff", label: "Staff", icon: Users },
-  { href: "/reports", label: "Reports", icon: FileText },
+  // { href: "/reports", label: "Reports", icon: FileText }, // Removed Reports nav item
 ];
 
 export function SidebarNav() {
