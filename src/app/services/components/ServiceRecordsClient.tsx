@@ -1,17 +1,19 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import type { ServiceRecord } from "@/types";
-import { mockServiceRecords } from "@/lib/mockData";
+// import { mockServiceRecords } from "@/lib/mockData"; // No longer using mock data
 import { ServiceRecordDialog } from "./ServiceRecordDialog";
 import { ServiceRecordTable } from "./ServiceRecordTable";
 import { useToast } from "@/hooks/use-toast";
 import { useLog } from '@/contexts/LogContext';
 import { format } from "date-fns";
+
+const SERVICE_RECORDS_STORAGE_KEY = "gearledger_service_records";
 
 export default function ServiceRecordsClient() {
   const [records, setRecords] = useState<ServiceRecord[]>([]);
@@ -21,23 +23,44 @@ export default function ServiceRecordsClient() {
   const { addLogEntry } = useLog();
 
   useEffect(() => {
-    setRecords(mockServiceRecords);
+    const storedRecords = localStorage.getItem(SERVICE_RECORDS_STORAGE_KEY);
+    if (storedRecords) {
+      try {
+        const parsedRecords = JSON.parse(storedRecords) as ServiceRecord[];
+        setRecords(parsedRecords.map(rec => ({ ...rec, date: new Date(rec.date) })));
+      } catch (error) {
+        console.error("Failed to parse service records from localStorage", error);
+        setRecords([]);
+      }
+    } else {
+      setRecords([]);
+    }
   }, []);
 
-  const handleAddService = (data: ServiceRecord) => { // data includes id
+  useEffect(() => {
+    if (records.length > 0 || localStorage.getItem(SERVICE_RECORDS_STORAGE_KEY)) {
+      localStorage.setItem(SERVICE_RECORDS_STORAGE_KEY, JSON.stringify(records));
+    }
+  }, [records]);
+
+  const handleAddService = (data: ServiceRecord) => { 
+    let updatedRecords;
     if (editingRecord) {
-      setRecords(records.map(r => r.id === data.id ? data : r));
+      updatedRecords = records.map(r => r.id === data.id ? data : r);
+      setRecords(updatedRecords);
       toast({ title: "Service Record Updated", description: `Record for ${data.customerName} has been updated.` });
       addLogEntry({
         action: "Updated Service Record",
         details: `ID: ${data.id}, Cust: ${data.customerName}, Bike: ${data.bikeModel} (${data.bikeNo}), Cost: NRs. ${data.cost.toFixed(2)}`,
       });
     } else {
-      setRecords([data, ...records]); // data has new id from dialog
+      const newRecordWithDate = { ...data, date: new Date(data.date) };
+      updatedRecords = [newRecordWithDate, ...records];
+      setRecords(updatedRecords);
       toast({ title: "Service Record Added", description: `New record for ${data.customerName} created.` });
       addLogEntry({
         action: "Added Service Record",
-        details: `ID: ${data.id}, Cust: ${data.customerName}, Bike: ${data.bikeModel} (${data.bikeNo}), Date: ${format(data.date, "yyyy-MM-dd")}, Cost: NRs. ${data.cost.toFixed(2)}`,
+        details: `ID: ${data.id}, Cust: ${data.customerName}, Bike: ${data.bikeModel} (${data.bikeNo}), Date: ${format(newRecordWithDate.date, "yyyy-MM-dd")}, Cost: NRs. ${data.cost.toFixed(2)}`,
       });
     }
     setEditingRecord(undefined);

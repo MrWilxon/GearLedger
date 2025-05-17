@@ -1,16 +1,18 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import type { StockItem } from "@/types";
-import { mockStockItems } from "@/lib/mockData";
+// import { mockStockItems } from "@/lib/mockData"; // No longer using mock data
 import { StockItemDialog } from "./StockItemDialog";
 import { StockItemTable } from "./StockItemTable";
 import { useToast } from "@/hooks/use-toast";
 import { useLog } from '@/contexts/LogContext';
+
+const STOCK_ITEMS_STORAGE_KEY = "gearledger_stock_items";
 
 export default function StockItemsClient() {
   const [items, setItems] = useState<StockItem[]>([]);
@@ -20,19 +22,38 @@ export default function StockItemsClient() {
   const { addLogEntry } = useLog();
 
   useEffect(() => {
-    setItems(mockStockItems);
+    const storedItems = localStorage.getItem(STOCK_ITEMS_STORAGE_KEY);
+    if (storedItems) {
+      try {
+        setItems(JSON.parse(storedItems) as StockItem[]);
+      } catch (error) {
+        console.error("Failed to parse stock items from localStorage", error);
+        setItems([]);
+      }
+    } else {
+      setItems([]);
+    }
   }, []);
 
-  const handleFormSubmit = (data: StockItem) => { // data includes id
+  useEffect(() => {
+    if (items.length > 0 || localStorage.getItem(STOCK_ITEMS_STORAGE_KEY)) {
+      localStorage.setItem(STOCK_ITEMS_STORAGE_KEY, JSON.stringify(items));
+    }
+  }, [items]);
+
+  const handleFormSubmit = (data: StockItem) => { 
+    let updatedItems;
     if (editingItem) {
-      setItems(items.map(item => item.id === data.id ? data : item));
+      updatedItems = items.map(item => item.id === data.id ? data : item);
+      setItems(updatedItems);
       toast({ title: "Stock Item Updated", description: `${data.name} has been updated.` });
       addLogEntry({
         action: "Updated Stock Item",
         details: `ID: ${data.id}, Name: ${data.name}, Qty: ${data.quantityInStock}, Price: NRs. ${data.price.toFixed(2)}, Category: ${data.category || 'N/A'}`,
       });
     } else {
-      setItems([data, ...items]); // data has new id from dialog
+      updatedItems = [data, ...items];
+      setItems(updatedItems); 
       toast({ title: "Stock Item Added", description: `${data.name} has been added to stock.` });
       addLogEntry({
         action: "Added Stock Item",

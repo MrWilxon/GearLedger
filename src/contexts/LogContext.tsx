@@ -2,40 +2,80 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 export interface LogEntryData {
-  action: string; // e.g., "Created Expense", "Updated Stock Item"
-  details: string; // e.g., "Expense: Rent for October", "Item: Premium Chain Lube, Quantity: 48"
-  user?: string; // Optional, defaults to "Admin"
+  action: string; 
+  details: string; 
+  user?: string; 
 }
 
 export interface LogEntryType extends LogEntryData {
   id: string;
-  timestamp: Date;
+  timestamp: Date; // Keep as Date object in memory
   user: string;
 }
+
+// For localStorage, timestamp will be string
+interface StoredLogEntryType extends Omit<LogEntryType, 'timestamp'> {
+  timestamp: string; 
+}
+
 
 interface LogContextType {
   logEntries: LogEntryType[];
   addLogEntry: (entryData: LogEntryData) => void;
 }
 
+const LOG_ENTRIES_STORAGE_KEY = "gearledger_log_entries";
+const MAX_LOG_ENTRIES = 100; // Increased max log entries
+
 const LogContext = createContext<LogContextType | undefined>(undefined);
 
 export function LogProvider({ children }: { children: ReactNode }) {
   const [logEntries, setLogEntries] = useState<LogEntryType[]>([]);
 
+  useEffect(() => {
+    const storedLogEntries = localStorage.getItem(LOG_ENTRIES_STORAGE_KEY);
+    if (storedLogEntries) {
+      try {
+        const parsedEntries = JSON.parse(storedLogEntries) as StoredLogEntryType[];
+        // Convert timestamp strings back to Date objects
+        setLogEntries(parsedEntries.map(entry => ({
+          ...entry,
+          timestamp: new Date(entry.timestamp),
+        })).slice(0, MAX_LOG_ENTRIES));
+      } catch (error) {
+        console.error("Failed to parse log entries from localStorage", error);
+        setLogEntries([]);
+      }
+    } else {
+      setLogEntries([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save to localStorage whenever logEntries change
+    // Only save if there are entries or if something was previously in storage (to clear it if needed)
+    if (logEntries.length > 0 || localStorage.getItem(LOG_ENTRIES_STORAGE_KEY)) {
+        // Convert Date objects to ISO strings for storage
+        const entriesToStore = logEntries.map(entry => ({
+            ...entry,
+            timestamp: entry.timestamp.toISOString(),
+        }));
+      localStorage.setItem(LOG_ENTRIES_STORAGE_KEY, JSON.stringify(entriesToStore));
+    }
+  }, [logEntries]);
+
   const addLogEntry = useCallback((entryData: LogEntryData) => {
     const newEntry: LogEntryType = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      user: entryData.user || "Admin", // Default user
+      user: entryData.user || "Admin", 
       action: entryData.action,
       details: entryData.details,
     };
-    // Add new entry to the beginning and keep a maximum of 50 entries
-    setLogEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 50));
+    setLogEntries(prevEntries => [newEntry, ...prevEntries].slice(0, MAX_LOG_ENTRIES));
   }, []);
 
   return (

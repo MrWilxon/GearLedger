@@ -1,17 +1,19 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import type { StaffMember } from "@/types";
-import { mockStaffMembers } from "@/lib/mockData";
+// import { mockStaffMembers } from "@/lib/mockData"; // No longer using mock data
 import { StaffDialog } from "./StaffDialog";
 import { StaffTable } from "./StaffTable";
 import { useToast } from "@/hooks/use-toast";
 import { useLog } from '@/contexts/LogContext';
 import { format } from "date-fns";
+
+const STAFF_STORAGE_KEY = "gearledger_staff";
 
 export default function StaffClient() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
@@ -21,23 +23,44 @@ export default function StaffClient() {
   const { addLogEntry } = useLog();
 
   useEffect(() => {
-    setStaffList(mockStaffMembers);
+    const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY);
+    if (storedStaff) {
+      try {
+        const parsedStaff = JSON.parse(storedStaff) as StaffMember[];
+        setStaffList(parsedStaff.map(staff => ({ ...staff, joiningDate: new Date(staff.joiningDate) })));
+      } catch (error) {
+        console.error("Failed to parse staff data from localStorage", error);
+        setStaffList([]);
+      }
+    } else {
+      setStaffList([]);
+    }
   }, []);
 
-  const handleFormSubmit = (data: StaffMember) => { // data includes id
+  useEffect(() => {
+    if (staffList.length > 0 || localStorage.getItem(STAFF_STORAGE_KEY)) {
+      localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staffList));
+    }
+  }, [staffList]);
+
+  const handleFormSubmit = (data: StaffMember) => { 
+    let updatedStaffList;
     if (editingStaff) {
-      setStaffList(staffList.map(s => s.id === data.id ? data : s));
+      updatedStaffList = staffList.map(s => s.id === data.id ? data : s);
+      setStaffList(updatedStaffList);
       toast({ title: "Staff Member Updated", description: `${data.name}'s details have been updated.` });
       addLogEntry({
         action: "Updated Staff Member",
         details: `ID: ${data.id}, Name: ${data.name}, Desig: ${data.designation}, Salary: NRs. ${data.salary.toFixed(2)}`,
       });
     } else {
-      setStaffList([data, ...staffList]); // data has new id from dialog
+      const newStaffWithDate = { ...data, joiningDate: new Date(data.joiningDate) };
+      updatedStaffList = [newStaffWithDate, ...staffList];
+      setStaffList(updatedStaffList); 
       toast({ title: "Staff Member Added", description: `${data.name} has been added to the team.` });
       addLogEntry({
         action: "Added Staff Member",
-        details: `ID: ${data.id}, Name: ${data.name}, Desig: ${data.designation}, Joined: ${format(data.joiningDate, "yyyy-MM-dd")}, Salary: NRs. ${data.salary.toFixed(2)}`,
+        details: `ID: ${data.id}, Name: ${data.name}, Desig: ${data.designation}, Joined: ${format(newStaffWithDate.joiningDate, "yyyy-MM-dd")}, Salary: NRs. ${data.salary.toFixed(2)}`,
       });
     }
     setEditingStaff(undefined);
