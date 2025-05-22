@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import format from "date-fns/format";
 import type { ServiceRecord } from "@/types";
 import { useEffect } from "react";
 
@@ -62,7 +62,7 @@ export function ServiceRecordDialog({
   const form = useForm<ServiceRecordFormData>({
     resolver: zodResolver(serviceRecordSchema),
     defaultValues: {
-      date: defaultValues?.date ? new Date(defaultValues.date) : undefined,
+      date: defaultValues?.date ? new Date(defaultValues.date) : undefined, // Initialize undefined for new
       customerName: defaultValues?.customerName || "",
       contactNo: defaultValues?.contactNo || "",
       bikeModel: defaultValues?.bikeModel || "",
@@ -84,7 +84,7 @@ export function ServiceRecordDialog({
         });
       } else if (!isEditing) {
         form.reset({
-          date: new Date(),
+          date: new Date(), // Set current date client-side for new record
           customerName: "",
           contactNo: "",
           bikeModel: "",

@@ -1,17 +1,19 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from "@/components/PageHeader";
 import { DashboardSummaryCard } from "@/components/dashboard/DashboardSummaryCard";
 import { SalesChart } from "@/components/dashboard/SalesChart";
-import { DollarSign, Boxes, Receipt, Activity, FileText } from "lucide-react"; // Added FileText for new section
+import { DollarSign, Boxes, Receipt, Activity, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator"; // Added Separator
+import { Separator } from "@/components/ui/separator";
 import { useLog } from '@/contexts/LogContext';
-import { format, subDays } from 'date-fns';
+import format from 'date-fns/format';
+import subDays from 'date-fns/subDays';
 import type { ServiceRecord, Expense, StockItem } from '@/types';
-import ReportsClient from "./reports/components/ReportsClient"; // Import ReportsClient
+import ReportsClient from "./reports/components/ReportsClient";
 
 // localStorage keys (must match those in client components)
 const SERVICE_RECORDS_STORAGE_KEY = "gearledger_service_records";
@@ -123,7 +125,7 @@ export default function DashboardPage() {
         />
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2 mb-8"> {/* Added mb-8 for spacing */}
+      <div className="grid gap-6 md:grid-cols-2 mb-8">
         <SalesChart salesDataForChart={salesChartData} />
         <Card className="shadow-md">
           <CardHeader>
@@ -158,9 +160,9 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Separator className="my-8" /> {/* Added separator */}
+      <Separator className="my-8" />
 
-      {/* New Section for Detailed Reports &amp; Logs */}
+      {/* New Section for Detailed Reports & Logs */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight flex items-center">
           <FileText className="mr-3 h-6 w-6" /> Detailed Reports &amp; Logs

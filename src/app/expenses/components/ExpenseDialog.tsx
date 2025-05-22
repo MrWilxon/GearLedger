@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import format from "date-fns/format";
 import type { Expense } from "@/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
@@ -41,7 +41,7 @@ export function ExpenseDialog({ isOpen, onClose, onSubmit, defaultValues, isEdit
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
-      date: defaultValues?.date ? new Date(defaultValues.date) : undefined,
+      date: defaultValues?.date ? new Date(defaultValues.date) : undefined, // Initialize undefined for new
       category: defaultValues?.category || "",
       description: defaultValues?.description || "",
       amount: defaultValues?.amount || 0,
@@ -71,7 +71,7 @@ export function ExpenseDialog({ isOpen, onClose, onSubmit, defaultValues, isEdit
 
   const handleFormSubmit = (data: ExpenseFormData) => {
     onSubmit({ ...data, id: defaultValues?.id || crypto.randomUUID() });
-    form.reset(); // Reset form after submission
+    form.reset(); 
     onClose();
   };
 

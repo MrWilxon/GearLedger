@@ -4,7 +4,7 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import type { ChartConfig } from "@/components/ui/chart"; 
-import { format } from 'date-fns';
+import format from 'date-fns/format';
 
 const chartConfig = {
   sales: {

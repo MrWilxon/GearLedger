@@ -21,9 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"; // Assuming this is created or use simple header
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"; 
 import type { ServiceRecord } from "@/types";
-import { format } from "date-fns";
+import format from "date-fns/format";
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender } from "@tanstack/react-table";
 import type { SortingState, ColumnFiltersState } from "@tanstack/react-table";
 import React from "react";
@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 interface ServiceRecordTableProps {
   data: ServiceRecord[];
   onEdit: (record: ServiceRecord) => void;
-  onDelete: (id: string) => void; // Simplified
+  onDelete: (id: string) => void; 
 }
 
 export const columns: ColumnDef<ServiceRecord>[] = [
@@ -147,7 +147,7 @@ export function ServiceRecordTable({ data, onEdit, onDelete }: ServiceRecordTabl
       columnFilters,
       rowSelection,
     },
-    meta: { // Pass custom props to columns
+    meta: { 
       onEdit,
       onDelete,
     }

@@ -1,7 +1,7 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-// Removed PageHeader import as it's no longer used here directly for main title
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,8 @@ import { Printer, Download } from "lucide-react";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import type { DateRange } from "react-day-picker";
 import { useLog, type LogEntryType } from '@/contexts/LogContext';
-import { format, isWithinInterval } from 'date-fns'; // Removed parseISO as it might not be needed if dates are already Date objects
+import format from 'date-fns/format';
+import isWithinInterval from 'date-fns/isWithinInterval';
 import type { ServiceRecord, Expense, StockItem } from "@/types";
 
 // localStorage keys (must match those in client components)
@@ -80,19 +81,19 @@ export default function ReportsClient() {
   }, [logEntries, dateRange]); 
 
   const filteredServiceRecords = useMemo(() => {
-    if (!dateRange?.from) return serviceRecords; // Show all if no range selected
+    if (!dateRange?.from) return serviceRecords; 
     const toDate = dateRange.to || dateRange.from; 
     return serviceRecords.filter(record => {
-        const recordDate = new Date(record.date); // Ensure record.date is a Date object
+        const recordDate = new Date(record.date); 
         return isWithinInterval(recordDate, { start: dateRange.from!, end: toDate });
     });
   }, [serviceRecords, dateRange]);
 
   const filteredExpenses = useMemo(() => {
-    if (!dateRange?.from) return expenses; // Show all if no range selected
+    if (!dateRange?.from) return expenses; 
     const toDate = dateRange.to || dateRange.from;
     return expenses.filter(expense => {
-        const expenseDate = new Date(expense.date); // Ensure expense.date is a Date object
+        const expenseDate = new Date(expense.date); 
         return isWithinInterval(expenseDate, { start: dateRange.from!, end: toDate });
     });
   }, [expenses, dateRange]);
@@ -111,8 +112,6 @@ export default function ReportsClient() {
 
   return (
     <>
-      {/* Removed PageHeader component from here */}
-      {/* DatePicker and Print button are now directly part of this component's layout */}
       <div className="mb-6 flex flex-col gap-y-2 sm:flex-row sm:items-center sm:justify-end">
          <div className="flex items-center gap-2">
             <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
@@ -297,5 +296,4 @@ export default function ReportsClient() {
   );
 }
 
-// Added MAX_LOG_ENTRIES constant, assuming it was defined in LogContext but needed here for description
 const MAX_LOG_ENTRIES = 100;

@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import format from "date-fns/format";
 import type { StaffMember } from "@/types";
 import { useEffect } from "react";
 
@@ -42,7 +42,7 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
     defaultValues: {
       name: defaultValues?.name || "",
       designation: defaultValues?.designation || "",
-      joiningDate: defaultValues?.joiningDate ? new Date(defaultValues.joiningDate) : undefined,
+      joiningDate: defaultValues?.joiningDate ? new Date(defaultValues.joiningDate) : undefined, // Initialize undefined for new
       salary: defaultValues?.salary || 0,
       advanceSalary: defaultValues?.advanceSalary || 0,
       contactNo: defaultValues?.contactNo || "",
@@ -63,7 +63,7 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
         form.reset({
           name: "",
           designation: "",
-          joiningDate: new Date(),
+          joiningDate: new Date(), // Set current date client-side for new staff
           salary: 0,
           advanceSalary: 0,
           contactNo: "",

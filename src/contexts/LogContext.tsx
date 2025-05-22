@@ -3,6 +3,7 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import format from 'date-fns/format';
 
 export interface LogEntryData {
   action: string; 
@@ -12,11 +13,10 @@ export interface LogEntryData {
 
 export interface LogEntryType extends LogEntryData {
   id: string;
-  timestamp: Date; // Keep as Date object in memory
+  timestamp: Date; 
   user: string;
 }
 
-// For localStorage, timestamp will be string
 interface StoredLogEntryType extends Omit<LogEntryType, 'timestamp'> {
   timestamp: string; 
 }
@@ -28,7 +28,7 @@ interface LogContextType {
 }
 
 const LOG_ENTRIES_STORAGE_KEY = "gearledger_log_entries";
-const MAX_LOG_ENTRIES = 100; // Increased max log entries
+const MAX_LOG_ENTRIES = 100;
 
 const LogContext = createContext<LogContextType | undefined>(undefined);
 
@@ -40,7 +40,6 @@ export function LogProvider({ children }: { children: ReactNode }) {
     if (storedLogEntries) {
       try {
         const parsedEntries = JSON.parse(storedLogEntries) as StoredLogEntryType[];
-        // Convert timestamp strings back to Date objects
         setLogEntries(parsedEntries.map(entry => ({
           ...entry,
           timestamp: new Date(entry.timestamp),
@@ -55,10 +54,7 @@ export function LogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Save to localStorage whenever logEntries change
-    // Only save if there are entries or if something was previously in storage (to clear it if needed)
     if (logEntries.length > 0 || localStorage.getItem(LOG_ENTRIES_STORAGE_KEY)) {
-        // Convert Date objects to ISO strings for storage
         const entriesToStore = logEntries.map(entry => ({
             ...entry,
             timestamp: entry.timestamp.toISOString(),
