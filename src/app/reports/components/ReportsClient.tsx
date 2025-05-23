@@ -264,7 +264,7 @@ export default function ReportsClient() {
           <Card>
             <CardHeader>
               <CardTitle>Activity Logs</CardTitle>
-              <CardDescription>Chronological record of data entries and modifications. (Max {logEntries.length > 0 ? MAX_LOG_ENTRIES : 0} shown)</CardDescription>
+              <CardDescription>Chronological record of data entries and modifications. (Most recent entries from your session are shown here.)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="max-h-[600px] overflow-y-auto">
@@ -295,5 +295,3 @@ export default function ReportsClient() {
     </>
   );
 }
-
-const MAX_LOG_ENTRIES = 100;

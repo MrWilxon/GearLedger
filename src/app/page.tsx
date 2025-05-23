@@ -29,12 +29,15 @@ export default function DashboardPage() {
   const { logEntries } = useLog(); 
 
   useEffect(() => {
+    const today = new Date(); // Use a single `new Date()` for all calculations in this effect
+    today.setHours(0, 0, 0, 0); // Standardize to start of day for comparisons
+
     const storedServiceRecords = localStorage.getItem(SERVICE_RECORDS_STORAGE_KEY);
     let currentDaySalesTotal = 0;
     let currentDaySalesCount = 0;
-    const today = new Date();
     const last7DaysSales: { [key: string]: number } = {};
 
+    // Initialize sales data for the last 7 days (today + 6 previous days)
     for (let i = 6; i >= 0; i--) {
       const day = subDays(today, i);
       last7DaysSales[format(day, "yyyy-MM-dd")] = 0;
@@ -45,7 +48,9 @@ export default function DashboardPage() {
         const parsedServiceRecords = JSON.parse(storedServiceRecords) as ServiceRecord[];
         parsedServiceRecords.forEach(record => {
           const recordDate = new Date(record.date);
-          if (format(recordDate, "yyyy-MM-dd") === format(today, "yyyy-MM-dd")) {
+          recordDate.setHours(0,0,0,0); // Standardize to start of day
+
+          if (recordDate.getTime() === today.getTime()) {
             currentDaySalesTotal += record.cost;
             currentDaySalesCount += 1;
           }
@@ -74,13 +79,16 @@ export default function DashboardPage() {
     const storedExpenses = localStorage.getItem(EXPENSES_STORAGE_KEY);
     let recentExpensesTotal = 0;
     let recentExpensesCount = 0;
-    const sevenDaysAgo = subDays(today, 7);
+    // For "Last 7 Days", we want today and the 6 previous days.
+    const sevenDaysAgoStart = subDays(today, 6); // Start of the 7-day period
+    
     if (storedExpenses) {
       try {
         const parsedExpenses = JSON.parse(storedExpenses) as Expense[];
         parsedExpenses.forEach(expense => {
           const expenseDate = new Date(expense.date);
-          if (expenseDate >= sevenDaysAgo && expenseDate <= today) {
+          expenseDate.setHours(0,0,0,0); // Standardize to start of day
+          if (expenseDate >= sevenDaysAgoStart && expenseDate <= today) {
             recentExpensesTotal += expense.amount;
             recentExpensesCount += 1;
           }
