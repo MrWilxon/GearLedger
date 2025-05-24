@@ -29,11 +29,11 @@ import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { PurchaseOrder, PurchaseOrderItem } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const purchaseOrderItemSchema = z.object({
-  id: z.string().optional(), // For existing items
+  id: z.string().optional(), // For existing items, will be populated client-side for new
   productName: z.string().min(1, "Product name is required"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   unitPrice: z.coerce.number().min(0, "Unit price cannot be negative"),
@@ -75,28 +75,32 @@ export function PurchaseOrderDialog({
     defaultValues: {
       poNumber: defaultValues?.poNumber || "",
       supplier: defaultValues?.supplier || "",
-      orderDate: defaultValues?.orderDate ? new Date(defaultValues.orderDate) : undefined,
+      orderDate: defaultValues?.orderDate ? new Date(defaultValues.orderDate) : undefined, // Set in useEffect for new
       expectedDeliveryDate: defaultValues?.expectedDeliveryDate ? new Date(defaultValues.expectedDeliveryDate) : undefined,
-      items: defaultValues?.items?.map(item => ({ ...item, id: item.id || crypto.randomUUID() })) || [],
+      // Avoid crypto.randomUUID() here for initial values to prevent hydration mismatch
+      items: defaultValues?.items?.map(item => ({
+        ...item,
+        // id will be ensured in useEffect or by useFieldArray's append
+      })) || [],
       status: defaultValues?.status || "Pending",
       notes: defaultValues?.notes || "",
       totalAmount: defaultValues?.totalAmount || 0,
     },
   });
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "items",
   });
 
-  const [calculatedTotal, setCalculatedTotal] = useState(defaultValues?.totalAmount || 0);
+  const watchedTotalAmount = form.watch("totalAmount");
 
   useEffect(() => {
     if (isOpen) {
-      const defaultItems = defaultValues?.items?.map(item => ({
+      const processedDefaultItems = defaultValues?.items?.map(item => ({
         ...item,
-        id: item.id || crypto.randomUUID(),
-        totalPrice: item.quantity * item.price // Use price from StockItem for defaultValues consistency
+        id: item.id || crypto.randomUUID(), // Generate ID here, client-side
+        totalPrice: (item.quantity || 0) * (item.unitPrice || 0)
       })) || [];
 
       form.reset({
@@ -104,12 +108,13 @@ export function PurchaseOrderDialog({
         supplier: defaultValues?.supplier || "",
         orderDate: defaultValues?.orderDate ? new Date(defaultValues.orderDate) : new Date(),
         expectedDeliveryDate: defaultValues?.expectedDeliveryDate ? new Date(defaultValues.expectedDeliveryDate) : undefined,
-        items: defaultItems,
+        items: processedDefaultItems,
         status: defaultValues?.status || "Pending",
         notes: defaultValues?.notes || "",
         totalAmount: defaultValues?.totalAmount || 0,
       });
-      if (!isEditing && defaultValues?.items === undefined) { // ensure new PO starts with one empty item
+
+      if (!isEditing && processedDefaultItems.length === 0) {
         append({ productName: "", quantity: 1, unitPrice: 0, totalPrice: 0, id: crypto.randomUUID() });
       }
     }
@@ -125,13 +130,14 @@ export function PurchaseOrderDialog({
           const quantity = Number(item.quantity) || 0;
           const unitPrice = Number(item.unitPrice) || 0;
           const itemTotal = quantity * unitPrice;
-          if (item.totalPrice !== itemTotal) {
+          if (form.getValues(`items.${index}.totalPrice`) !== itemTotal) {
             form.setValue(`items.${index}.totalPrice`, itemTotal, { shouldValidate: true });
           }
           currentTotal += itemTotal;
         });
-        setCalculatedTotal(currentTotal);
-        form.setValue("totalAmount", currentTotal, { shouldValidate: true });
+        if (form.getValues("totalAmount") !== currentTotal) {
+          form.setValue("totalAmount", currentTotal, { shouldValidate: true });
+        }
       }
     });
     return () => subscription.unsubscribe();
@@ -140,12 +146,12 @@ export function PurchaseOrderDialog({
 
   const handleFormSubmit = (data: PurchaseOrderFormData) => {
     onSubmit({ ...data, id: defaultValues?.id || crypto.randomUUID() });
-    form.reset();
+    // form.reset(); // Reset is handled by dialog close or next open
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { onClose(); form.reset(); } }}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Purchase Order" : "Create New Purchase Order"}</DialogTitle>
@@ -189,13 +195,13 @@ export function PurchaseOrderDialog({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                              {field.value ? format(field.value, "yyyy-MM-dd") : <span>Pick a date</span>}
+                              {field.value ? format(new Date(field.value), "yyyy-MM-dd") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                          <Calendar mode="single" selected={field.value ? new Date(field.value): undefined} onSelect={field.onChange} initialFocus />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -212,13 +218,13 @@ export function PurchaseOrderDialog({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                              {field.value ? format(field.value, "yyyy-MM-dd") : <span>Pick a date</span>}
+                              {field.value ? format(new Date(field.value), "yyyy-MM-dd") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (form.getValues("orderDate") || new Date())} />
+                          <Calendar mode="single" selected={field.value ? new Date(field.value): undefined} onSelect={field.onChange} disabled={(date) => date < (form.getValues("orderDate") || new Date())} />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -317,12 +323,14 @@ export function PurchaseOrderDialog({
               />
 
               <div className="text-right font-semibold text-lg">
-                Total Order Amount: NRs. {calculatedTotal.toFixed(2)}
+                Total Order Amount: NRs. {(watchedTotalAmount || 0).toFixed(2)}
               </div>
-              <FormField control={form.control} name="totalAmount" render={({ field }) => <Input type="hidden" {...field} />} />
+              {/* Hidden input for totalAmount is still useful if schema requires it directly, but display uses watched value */}
+              <FormField control={form.control} name="totalAmount" render={({ field }) => <Input type="hidden" {...field} value={watchedTotalAmount || 0} />} />
 
-              <DialogFooter className="sticky bottom-0 bg-background py-4 border-t">
-                <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+
+              <DialogFooter className="sticky bottom-0 bg-background py-4 border-t -mx-6 px-6"> {/* Adjust padding for full width */}
+                <Button type="button" variant="outline" onClick={() => { onClose(); form.reset(); }}>Cancel</Button>
                 <Button type="submit">{isEditing ? "Save Changes" : "Create Purchase Order"}</Button>
               </DialogFooter>
             </form>
