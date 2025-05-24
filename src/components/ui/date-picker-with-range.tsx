@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import format from "date-fns/format"
+import { format } from "date-fns";
 import type { DateRange } from "react-day-picker"
 import { Calendar as CalendarIcon } from "lucide-react"
 
@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/popover"
 
 interface DatePickerWithRangeProps extends React.HTMLAttributes<HTMLDivElement> {
-    date: DateRange | undefined;
-    onDateChange: (date: DateRange | undefined) => void;
+  date: DateRange | undefined;
+  onDateChange: (date: DateRange | undefined) => void;
 }
 
 export function DatePickerWithRange({
@@ -67,3 +67,5 @@ export function DatePickerWithRange({
     </div>
   )
 }
+
+    

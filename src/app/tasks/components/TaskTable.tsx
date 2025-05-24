@@ -27,8 +27,8 @@ import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowMode
 import type { SortingState, ColumnFiltersState } from "@tanstack/react-table";
 import React from "react";
 import { Input } from "@/components/ui/input";
-import format from "date-fns/format";
-import { Badge } from "@/components/ui/badge"; // Added import
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskTableProps {
   data: Task[];
@@ -68,8 +68,7 @@ export const columns: ColumnDef<Task>[] = [
       const priority = row.getValue("priority") as string;
       let badgeVariant: "default" | "secondary" | "outline" | "destructive" = "secondary";
       if (priority === "High") badgeVariant = "destructive";
-      if (priority === "Medium") badgeVariant = "default"; // Using default for Medium to make it stand out from Low
-      // Low will use secondary
+      if (priority === "Medium") badgeVariant = "default";
       return <Badge variant={badgeVariant} className={priority === "Medium" ? "bg-yellow-500/80 hover:bg-yellow-500/70 text-foreground" : ""}>{priority}</Badge>;
     }
   },
@@ -86,7 +85,7 @@ export const columns: ColumnDef<Task>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
     cell: ({ row }) => {
       const isCompleted = row.getValue("isCompleted") as boolean;
-      return isCompleted ? <Badge variant="default">Completed</Badge> : <Badge variant="secondary">Pending</Badge>;
+      return isCompleted ? <Badge variant="default" className="bg-green-500/80 hover:bg-green-500/70 text-foreground">Completed</Badge> : <Badge variant="secondary">Pending</Badge>;
     },
   },
   {
@@ -189,3 +188,5 @@ export function TaskTable({ data, onEdit, onDelete, onToggleComplete }: TaskTabl
     </div>
   );
 }
+
+    

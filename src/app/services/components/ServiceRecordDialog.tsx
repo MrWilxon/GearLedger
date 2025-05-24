@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import format from "date-fns/format";
+import { format } from "date-fns";
 import type { ServiceRecord } from "@/types";
 import { useEffect } from "react";
 
@@ -221,32 +221,32 @@ export function ServiceRecordDialog({
               )}
             />
             <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="serviceCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>No. of Services</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cost"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cost (NRs.)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="serviceCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>No. of Services</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost (NRs.)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
@@ -260,3 +260,5 @@ export function ServiceRecordDialog({
     </Dialog>
   );
 }
+
+    

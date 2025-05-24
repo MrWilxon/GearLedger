@@ -3,22 +3,22 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import format from 'date-fns/format';
+import { format } from 'date-fns';
 
 export interface LogEntryData {
-  action: string; 
-  details: string; 
-  user?: string; 
+  action: string;
+  details: string;
+  user?: string;
 }
 
 export interface LogEntryType extends LogEntryData {
   id: string;
-  timestamp: Date; 
+  timestamp: Date;
   user: string;
 }
 
 interface StoredLogEntryType extends Omit<LogEntryType, 'timestamp'> {
-  timestamp: string; 
+  timestamp: string;
 }
 
 
@@ -55,10 +55,10 @@ export function LogProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (logEntries.length > 0 || localStorage.getItem(LOG_ENTRIES_STORAGE_KEY)) {
-        const entriesToStore = logEntries.map(entry => ({
-            ...entry,
-            timestamp: entry.timestamp.toISOString(),
-        }));
+      const entriesToStore = logEntries.map(entry => ({
+        ...entry,
+        timestamp: entry.timestamp.toISOString(),
+      }));
       localStorage.setItem(LOG_ENTRIES_STORAGE_KEY, JSON.stringify(entriesToStore));
     }
   }, [logEntries]);
@@ -67,7 +67,7 @@ export function LogProvider({ children }: { children: ReactNode }) {
     const newEntry: LogEntryType = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      user: entryData.user || "Admin", 
+      user: entryData.user || "Admin",
       action: entryData.action,
       details: entryData.details,
     };
@@ -88,3 +88,5 @@ export function useLog(): LogContextType {
   }
   return context;
 }
+
+    

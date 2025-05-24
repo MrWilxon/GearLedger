@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import type { ServiceRecord } from "@/types";
-// import { mockServiceRecords } from "@/lib/mockData"; // No longer using mock data
 import { ServiceRecordDialog } from "./ServiceRecordDialog";
 import { ServiceRecordTable } from "./ServiceRecordTable";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +42,7 @@ export default function ServiceRecordsClient() {
     }
   }, [records]);
 
-  const handleAddService = (data: ServiceRecord) => { 
+  const handleAddService = (data: ServiceRecord) => {
     let updatedRecords;
     if (editingRecord) {
       updatedRecords = records.map(r => r.id === data.id ? data : r);
@@ -103,14 +102,16 @@ export default function ServiceRecordsClient() {
       />
       <ServiceRecordTable data={records} onEdit={openDialogForEdit} onDelete={handleDeleteService} />
       {isDialogOpen && (
-         <ServiceRecordDialog
-            isOpen={isDialogOpen}
-            onClose={() => setIsDialogOpen(false)}
-            onSubmit={handleAddService}
-            defaultValues={editingRecord}
-            isEditing={!!editingRecord}
+        <ServiceRecordDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onSubmit={handleAddService}
+          defaultValues={editingRecord}
+          isEditing={!!editingRecord}
         />
       )}
     </>
   );
 }
+
+    

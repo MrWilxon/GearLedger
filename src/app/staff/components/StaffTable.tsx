@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import type { StaffMember } from "@/types";
-import format from "date-fns/format";
+import { format } from "date-fns";
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender } from "@tanstack/react-table";
 import type { SortingState, ColumnFiltersState } from "@tanstack/react-table";
 import React from "react";
@@ -26,15 +26,15 @@ const currencyFormatter = (value: number) => `NRs. ${value.toLocaleString("en-US
 export const columns: ColumnDef<StaffMember>[] = [
   {
     id: "select",
-    header: ({ table }) => (<Checkbox checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all"/>),
-    cell: ({ row }) => (<Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row"/>),
+    header: ({ table }) => (<Checkbox checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all" />),
+    cell: ({ row }) => (<Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />),
     enableSorting: false, enableHiding: false,
   },
   { accessorKey: "name", header: ({ column }) => <DataTableColumnHeader column={column} title="Name" /> },
   { accessorKey: "designation", header: "Designation" },
   { accessorKey: "joiningDate", header: ({ column }) => <DataTableColumnHeader column={column} title="Joining Date" />, cell: ({ row }) => format(new Date(row.getValue("joiningDate")), "yyyy-MM-dd") },
   { accessorKey: "salary", header: ({ column }) => <DataTableColumnHeader column={column} title="Salary (NRs.)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue("salary"))}</div> },
-  { accessorKey: "advanceSalary", header: ({ column }) => <DataTableColumnHeader column={column} title="Adv. Salary (NRs.)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue("advanceSalary"))}</div>},
+  { accessorKey: "advanceSalary", header: ({ column }) => <DataTableColumnHeader column={column} title="Adv. Salary (NRs.)" />, cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue("advanceSalary"))}</div> },
   { accessorKey: "contactNo", header: "Contact No." },
   {
     id: "actions",
@@ -71,14 +71,14 @@ export function StaffTable({ data, onEdit, onDelete }: StaffTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center py-4">
-        <Input placeholder="Filter by name..." value={(table.getColumn("name")?.getFilterValue() as string) ?? ""} onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)} className="max-w-sm"/>
+        <Input placeholder="Filter by name..." value={(table.getColumn("name")?.getFilterValue() as string) ?? ""} onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)} className="max-w-sm" />
       </div>
       <div className="rounded-md border shadow-sm">
         <Table>
           <TableHeader>{table.getHeaderGroups().map((headerGroup) => (<TableRow key={headerGroup.id}>{headerGroup.headers.map((header) => (<TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>))}</TableRow>))}</TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (table.getRowModel().rows.map((row) => (<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>{row.getVisibleCells().map((cell) => (<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>))}</TableRow>)))
-            : (<TableRow><TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell></TableRow>)}
+              : (<TableRow><TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell></TableRow>)}
           </TableBody>
         </Table>
       </div>
@@ -89,3 +89,5 @@ export function StaffTable({ data, onEdit, onDelete }: StaffTableProps) {
     </div>
   );
 }
+
+    

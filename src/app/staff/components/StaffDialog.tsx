@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import format from "date-fns/format";
+import { format } from "date-fns";
 import type { StaffMember } from "@/types";
 import { useEffect } from "react";
 
@@ -142,14 +142,14 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
                 )}
               />
             </div>
-             <FormField
+            <FormField
               control={form.control}
               name="contactNo"
               render={({ field }) => (
                 <FormItem><FormLabel>Contact No. (Optional)</FormLabel><FormControl><Input placeholder="e.g., 555-0000" {...field} /></FormControl><FormMessage /></FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
@@ -166,3 +166,5 @@ export function StaffDialog({ isOpen, onClose, onSubmit, defaultValues, isEditin
     </Dialog>
   );
 }
+
+    

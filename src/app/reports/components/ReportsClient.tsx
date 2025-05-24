@@ -10,8 +10,7 @@ import { Printer, Download } from "lucide-react";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import type { DateRange } from "react-day-picker";
 import { useLog, type LogEntryType } from '@/contexts/LogContext';
-import format from 'date-fns/format';
-import isWithinInterval from 'date-fns/isWithinInterval';
+import { format, isWithinInterval } from 'date-fns';
 import type { ServiceRecord, Expense, StockItem } from "@/types";
 
 // localStorage keys (must match those in client components)
@@ -66,7 +65,7 @@ export default function ReportsClient() {
       } else {
         setExpenses([]);
       }
-      
+
       const storedStock = localStorage.getItem(STOCK_ITEMS_STORAGE_KEY);
       if (storedStock) {
         try {
@@ -78,45 +77,47 @@ export default function ReportsClient() {
     };
 
     loadData();
-  }, [logEntries, dateRange]); 
+    // Re-fetch data if logEntries change, as this indicates underlying data might have been modified.
+    // Also re-fetch if dateRange changes for filtering.
+  }, [logEntries, dateRange]);
 
   const filteredServiceRecords = useMemo(() => {
-    if (!dateRange?.from) return serviceRecords; 
-    const toDate = dateRange.to || dateRange.from; 
+    if (!dateRange?.from) return serviceRecords;
+    const toDate = dateRange.to || dateRange.from;
     return serviceRecords.filter(record => {
-        const recordDate = new Date(record.date); 
-        return isWithinInterval(recordDate, { start: dateRange.from!, end: toDate });
+      const recordDate = new Date(record.date);
+      return isWithinInterval(recordDate, { start: dateRange.from!, end: toDate });
     });
   }, [serviceRecords, dateRange]);
 
   const filteredExpenses = useMemo(() => {
-    if (!dateRange?.from) return expenses; 
+    if (!dateRange?.from) return expenses;
     const toDate = dateRange.to || dateRange.from;
     return expenses.filter(expense => {
-        const expenseDate = new Date(expense.date); 
-        return isWithinInterval(expenseDate, { start: dateRange.from!, end: toDate });
+      const expenseDate = new Date(expense.date);
+      return isWithinInterval(expenseDate, { start: dateRange.from!, end: toDate });
     });
   }, [expenses, dateRange]);
 
-  const totalSales = useMemo(() => 
-    filteredServiceRecords.reduce((sum, record) => sum + record.cost, 0), 
+  const totalSales = useMemo(() =>
+    filteredServiceRecords.reduce((sum, record) => sum + record.cost, 0),
     [filteredServiceRecords]
   );
 
-  const totalExpenses = useMemo(() => 
+  const totalExpenses = useMemo(() =>
     filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0),
     [filteredExpenses]
   );
-  
+
   const netProfitLoss = totalSales - totalExpenses;
 
   return (
     <>
       <div className="mb-6 flex flex-col gap-y-2 sm:flex-row sm:items-center sm:justify-end">
-         <div className="flex items-center gap-2">
-            <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
-            <Button onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print Page</Button>
-          </div>
+        <div className="flex items-center gap-2">
+          <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
+          <Button onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print Page</Button>
+        </div>
       </div>
 
       <Tabs defaultValue="sales" className="w-full">
@@ -126,7 +127,7 @@ export default function ReportsClient() {
           <TabsTrigger value="finance">Income &amp; Expense</TabsTrigger>
           <TabsTrigger value="logs">Activity Logs</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="sales">
           {filteredServiceRecords.length > 0 ? (
             <Card>
@@ -198,12 +199,12 @@ export default function ReportsClient() {
                   </TableBody>
                 </Table>
               </CardContent>
-               <CardFooter className="justify-end font-semibold">
+              <CardFooter className="justify-end font-semibold">
                 Total Stock Value: NRs. {stockItems.reduce((sum, item) => sum + (item.price * item.quantityInStock), 0).toFixed(2)}
               </CardFooter>
             </Card>
           ) : (
-             <ReportPlaceholder title="Stock Report" message="No stock items found." />
+            <ReportPlaceholder title="Stock Report" message="No stock items found." />
           )}
         </TabsContent>
 
@@ -237,19 +238,19 @@ export default function ReportsClient() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Expenses</h3>
                 {filteredExpenses.length > 0 ? (
-                <Table>
-                  <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead className="text-right">Amount (NRs.)</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {filteredExpenses.map(expense => (
-                      <TableRow key={`expense-${expense.id}`}>
-                        <TableCell>{format(new Date(expense.date), "yyyy-MM-dd")}</TableCell>
-                        <TableCell>{expense.category}</TableCell>
-                        <TableCell>{expense.description}</TableCell>
-                        <TableCell className="text-right">NRs. {expense.amount.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead>Description</TableHead><TableHead className="text-right">Amount (NRs.)</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {filteredExpenses.map(expense => (
+                        <TableRow key={`expense-${expense.id}`}>
+                          <TableCell>{format(new Date(expense.date), "yyyy-MM-dd")}</TableCell>
+                          <TableCell>{expense.category}</TableCell>
+                          <TableCell>{expense.description}</TableCell>
+                          <TableCell className="text-right">NRs. {expense.amount.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 ) : <p className="text-muted-foreground">No expense records for this period.</p>}
                 <p className="text-right font-semibold mt-2">Total Expenses: NRs. {totalExpenses.toFixed(2)}</p>
               </div>
@@ -259,12 +260,12 @@ export default function ReportsClient() {
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="logs">
           <Card>
             <CardHeader>
               <CardTitle>Activity Logs</CardTitle>
-              <CardDescription>Chronological record of data entries and modifications. (Most recent entries from your session are shown here.)</CardDescription>
+              <CardDescription>Chronological record of data entries and modifications. (Recent entries from your session are shown here.)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="max-h-[600px] overflow-y-auto">
@@ -286,7 +287,7 @@ export default function ReportsClient() {
                 )}
               </div>
             </CardContent>
-             <CardFooter className="justify-end">
+            <CardFooter className="justify-end">
               <Button variant="outline" disabled><Download className="mr-2 h-4 w-4" />Download Logs</Button>
             </CardFooter>
           </Card>
@@ -295,3 +296,5 @@ export default function ReportsClient() {
     </>
   );
 }
+
+    

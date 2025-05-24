@@ -5,10 +5,24 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
-import type { Expense } from "@/types";
+import type { PurchaseOrder } from "@/types";
 import { format } from "date-fns";
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender } from "@tanstack/react-table";
 import type { SortingState, ColumnFiltersState } from "@tanstack/react-table";
@@ -16,13 +30,13 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-interface ExpenseTableProps {
-  data: Expense[];
-  onEdit: (expense: Expense) => void;
+interface PurchaseOrderTableProps {
+  data: PurchaseOrder[];
+  onEdit: (po: PurchaseOrder) => void;
   onDelete: (id: string) => void;
 }
 
-export const columns: ColumnDef<Expense>[] = [
+export const columns: ColumnDef<PurchaseOrder>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -43,32 +57,51 @@ export const columns: ColumnDef<Expense>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "date",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
-    cell: ({ row }) => format(new Date(row.getValue("date")), "yyyy-MM-dd"),
+    accessorKey: "poNumber",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="PO Number" />,
   },
   {
-    accessorKey: "category",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
-    cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
+    accessorKey: "supplier",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Supplier" />,
   },
   {
-    accessorKey: "description",
-    header: "Description",
+    accessorKey: "orderDate",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Order Date" />,
+    cell: ({ row }) => format(new Date(row.getValue("orderDate")), "yyyy-MM-dd"),
   },
   {
-    accessorKey: "amount",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Amount (NRs.)" />,
+    accessorKey: "expectedDeliveryDate",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Expected Delivery" />,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
+      const date = row.getValue("expectedDeliveryDate");
+      return date ? format(new Date(date as string), "yyyy-MM-dd") : "N/A";
+    },
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+    cell: ({ row }) => {
+      const status = row.getValue("status") as PurchaseOrder["status"];
+      let variant: "default" | "secondary" | "outline" | "destructive" = "secondary";
+      if (status === "Received") variant = "default"; // Green-like
+      if (status === "Pending" || status === "Ordered") variant = "outline";
+      if (status === "Cancelled") variant = "destructive";
+      return <Badge variant={variant} className={status === "Received" ? "bg-green-500/80 hover:bg-green-500/70 text-foreground" : ""}>{status}</Badge>;
+    },
+  },
+  {
+    accessorKey: "totalAmount",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Total (NRs.)" />,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("totalAmount"));
       return <div className="text-right font-medium">NRs. {amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>;
     },
   },
   {
     id: "actions",
     cell: ({ row, table }) => {
-      const expense = row.original;
-      const { onEdit, onDelete } = (table.options.meta as ExpenseTableProps);
+      const po = row.original;
+      const { onEdit, onDelete } = (table.options.meta as PurchaseOrderTableProps);
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -79,9 +112,13 @@ export const columns: ColumnDef<Expense>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => onEdit(expense)}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(po)}>
+              <Pencil className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onDelete(expense.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10"><Trash2 className="mr-2 h-4 w-4" /> Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(po.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -89,7 +126,7 @@ export const columns: ColumnDef<Expense>[] = [
   },
 ];
 
-export function ExpenseTable({ data, onEdit, onDelete }: ExpenseTableProps) {
+export function PurchaseOrderTable({ data, onEdit, onDelete }: PurchaseOrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -112,9 +149,14 @@ export function ExpenseTable({ data, onEdit, onDelete }: ExpenseTableProps) {
     <div className="space-y-4">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by description..."
-          value={(table.getColumn("description")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn("description")?.setFilterValue(event.target.value)}
+          placeholder="Filter by PO number or supplier..."
+          value={(table.getColumn("poNumber")?.getFilterValue() as string) ?? (table.getColumn("supplier")?.getFilterValue() as string) ?? ""}
+          onChange={(event) => {
+            table.getColumn("poNumber")?.setFilterValue(event.target.value);
+            // You might want separate filters or a more complex global filter setup
+            // For now, this will filter primarily on poNumber if both exist.
+            // If you want global filter: table.setGlobalFilter(event.target.value)
+          }}
           className="max-w-sm"
         />
       </div>
@@ -142,7 +184,7 @@ export function ExpenseTable({ data, onEdit, onDelete }: ExpenseTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell>
+                <TableCell colSpan={columns.length} className="h-24 text-center">No purchase orders found.</TableCell>
               </TableRow>
             )}
           </TableBody>

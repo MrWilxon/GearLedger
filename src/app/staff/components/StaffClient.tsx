@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import type { StaffMember } from "@/types";
-// import { mockStaffMembers } from "@/lib/mockData"; // No longer using mock data
 import { StaffDialog } from "./StaffDialog";
 import { StaffTable } from "./StaffTable";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +42,7 @@ export default function StaffClient() {
     }
   }, [staffList]);
 
-  const handleFormSubmit = (data: StaffMember) => { 
+  const handleFormSubmit = (data: StaffMember) => {
     let updatedStaffList;
     if (editingStaff) {
       updatedStaffList = staffList.map(s => s.id === data.id ? data : s);
@@ -56,7 +55,7 @@ export default function StaffClient() {
     } else {
       const newStaffWithDate = { ...data, joiningDate: new Date(data.joiningDate) };
       updatedStaffList = [newStaffWithDate, ...staffList];
-      setStaffList(updatedStaffList); 
+      setStaffList(updatedStaffList);
       toast({ title: "Staff Member Added", description: `${data.name} has been added to the team.` });
       addLogEntry({
         action: "Added Staff Member",
@@ -114,3 +113,5 @@ export default function StaffClient() {
     </>
   );
 }
+
+    
