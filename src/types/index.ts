@@ -1,3 +1,4 @@
+
 export interface ServiceRecord {
   id: string;
   date: Date;
@@ -38,3 +39,32 @@ export interface StaffMember {
 }
 
 export type ReportType = "daily" | "weekly" | "monthly" | "annually";
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  priority: "Low" | "Medium" | "High";
+  dueDate?: Date;
+  isCompleted: boolean;
+}
+
+export interface PurchaseOrderItem {
+  id: string; 
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number; 
+}
+
+export interface PurchaseOrder {
+  id: string;
+  poNumber: string;
+  supplier: string;
+  orderDate: Date;
+  expectedDeliveryDate?: Date;
+  items: PurchaseOrderItem[];
+  status: "Pending" | "Ordered" | "Shipped" | "Received" | "Cancelled";
+  notes?: string;
+  totalAmount: number; 
+}
